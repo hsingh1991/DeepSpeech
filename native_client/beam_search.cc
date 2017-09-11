@@ -137,6 +137,9 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   {
     std::ifstream in(trie_path, std::ios::in);
     TrieNode::ReadFromStream(in, trieRoot, alphabet.GetSize());
+
+    Model::State out;
+    oov_score_ = model.FullScore(model.NullContextState(), model.GetVocabulary().NotFound(), out).prob;
   }
 
   virtual ~KenLMBeamScorer() {
@@ -163,9 +166,8 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
       to_state->incomplete_word += alphabet.StringFromLabel(to_label);
       TrieNode *trie_node = from_state.incomplete_word_trie_node;
 
-      // TODO replace with OOV unigram prob?
       // If we have no valid prefix we assume a very low log probability
-      float min_unigram_score = -10.0f;
+      float min_unigram_score = oov_score_;
       // If prefix does exist
       if (trie_node != nullptr) {
         trie_node = trie_node->GetChildAt(to_label);
@@ -250,6 +252,7 @@ class KenLMBeamScorer : public tf::ctc::BaseBeamScorer<KenLMBeamState> {
   float lm_weight_;
   float word_count_weight_;
   float valid_word_count_weight_;
+  float oov_score_;
 
   lm::ngram::Config GetLMConfig() {
     lm::ngram::Config config;

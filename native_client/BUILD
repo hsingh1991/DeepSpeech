@@ -1,7 +1,7 @@
 # Description: Deepspeech native client library.
 
 load("//tensorflow:tensorflow.bzl",
-     "if_linux_x86_64")
+     "if_linux_x86_64", "if_darwin")
 
 cc_library(
     name = "deepspeech",
@@ -46,6 +46,7 @@ cc_library(
                  "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
                 exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]),
     includes = ["kenlm"],
+    copts = ["-std=c++11"] + if_darwin(["-I/usr/local/include"]),
     defines = ["KENLM_MAX_ORDER=6"],
     deps = ["//tensorflow/core:core",
             "//tensorflow/core/util/ctc",
@@ -63,7 +64,7 @@ cc_binary(
               "kenlm/lm/*.hh", "kenlm/util/*.hh", "kenlm/util/double-conversion/*.h"],
              exclude = ["kenlm/*/*test.cc", "kenlm/*/*main.cc"]),
     includes = ["kenlm"],
-    copts = ["-std=c++11"],
+    copts = ["-std=c++11"] + if_darwin(["-I/usr/local/include"]),
     linkopts = ["-lm"],
     defines = ["KENLM_MAX_ORDER=6"],
 )
